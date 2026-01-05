@@ -1,0 +1,28 @@
+{
+  "id": "initial-graph",
+  "title": "People Search Eval",
+  "yAxisLabel": "Accuracy (%)",
+  "chartType": "bar",
+  "companies": [
+    {
+      "name": "Exa",
+      "accuracy": 63,
+      "color": "#3D3FEE",
+      "icon": "exa-icon.svg",
+      "highlighted": true
+    },
+    {
+      "name": "Brave",
+      "accuracy": 30,
+      "color": "#DFDFDF",
+      "icon": "brave-icon.svg"
+    },
+    {
+      "name": "Parallel",
+      "accuracy": 27,
+      "color": "#DFDFDF",
+      "icon": "parallel-icon.svg"
+    }
+  ]
+}
+

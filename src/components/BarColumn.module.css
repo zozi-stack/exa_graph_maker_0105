@@ -1,0 +1,55 @@
+.barColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 260px;
+  height: 100%;
+  position: relative;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.percentageLabel {
+  font-size: 30px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bar {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  min-height: 30px;
+  transition: height 0.3s ease;
+}
+
+.icon {
+  width: 65px;
+  height: 65px;
+  position: absolute;
+  object-fit: contain;
+  z-index: 1;
+}
+
+.companyName {
+  font-size: 34px;
+  color: #000;
+  margin-top: 18px;
+  text-align: center;
+  font-weight: normal;
+}
+

@@ -1,0 +1,13 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield shape -->
+  <path d="M30 5L50 12V28C50 42 30 55 30 55C30 55 10 42 10 28V12L30 5Z" fill="#FB542B"/>
+  <!-- Lion face details -->
+  <ellipse cx="30" cy="28" rx="12" ry="10" fill="#FFFFFF" fill-opacity="0.3"/>
+  <!-- Eyes -->
+  <circle cx="24" cy="26" r="3" fill="white"/>
+  <circle cx="36" cy="26" r="3" fill="white"/>
+  <!-- Nose -->
+  <path d="M30 30L27 35H33L30 30Z" fill="white"/>
+  <!-- Mouth -->
+  <path d="M24 38C24 38 27 42 30 42C33 42 36 38 36 38" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,108 @@
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.chart-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #F5F5F5;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.export-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #3D3FEE;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(61, 63, 238, 0.3);
+}
+
+.export-button:hover:not(:disabled) {
+  background: #2D2FDD;
+  box-shadow: 0 4px 12px rgba(61, 63, 238, 0.4);
+}
+
+.export-button:disabled,
+.export-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.export-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.charts-carousel {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+  padding: 0 100px;
+  height: 100%;
+  min-width: 100%;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.charts-carousel:active {
+  cursor: grabbing;
+}
+
+.chart-wrapper {
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.chart-wrapper.active {
+  z-index: 10;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+

@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'ABC Arizona Flare';
+  src: url('/fonts/ABC%20Arizona%20Flare/ABCArizonaFlare-Regular-Trial.woff2') format('woff2'),
+       url('/fonts/ABC%20Arizona%20Flare/ABCArizonaFlare-Regular-Trial.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Diatype';
+  src: url('/fonts/ABC%20Diatype/ABCDiatype-Regular.woff2') format('woff2'),
+       url('/fonts/ABC%20Diatype/ABCDiatype-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Diatype';
+  src: url('/fonts/ABC%20Diatype/ABCDiatype-Medium.woff2') format('woff2'),
+       url('/fonts/ABC%20Diatype/ABCDiatype-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Arizona Flare';
+  src: url('/fonts/ABC%20Arizona%20Flare/ABCArizonaFlare-Bold-Trial.woff2') format('woff2'),
+       url('/fonts/ABC%20Arizona%20Flare/ABCArizonaFlare-Bold-Trial.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'ABC Arizona Flare', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FAF9F7;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+

@@ -1,0 +1,248 @@
+.chartContainer {
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  background: #FAF9F7;
+  border-radius: 12px;
+  box-shadow: 
+    0 2px 4px rgba(154, 104, 21, 0.015),
+    0 6px 12px rgba(154, 104, 21, 0.02),
+    0 16px 32px rgba(154, 104, 21, 0.025),
+    0 32px 64px rgba(154, 104, 21, 0.02);
+}
+
+/* Flying line borders - marble reflection */
+.borderTop,
+.borderRight,
+.borderBottom,
+.borderLeft {
+  position: absolute;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.borderTop {
+  top: -1px;
+  left: -1px;
+  height: 1.5px;
+  width: 0;
+  animation: drawTop 0.8s ease-out forwards;
+}
+
+.borderRight {
+  top: -1px;
+  right: -1px;
+  width: 1.5px;
+  height: 0;
+  animation: drawRight 0.8s ease-out 0.6s forwards;
+}
+
+.borderBottom {
+  bottom: -1px;
+  right: -1px;
+  height: 1.5px;
+  width: 0;
+  animation: drawBottom 0.8s ease-out 1.2s forwards;
+}
+
+.borderLeft {
+  bottom: -1px;
+  left: -1px;
+  width: 1.5px;
+  height: 0;
+  animation: drawLeft 0.8s ease-out 1.8s forwards;
+}
+
+@keyframes drawTop {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  100% {
+    width: calc(100% + 2px);
+    opacity: 0;
+  }
+}
+
+@keyframes drawRight {
+  0% {
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    height: calc(100% + 2px);
+    opacity: 0;
+  }
+}
+
+@keyframes drawBottom {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  100% {
+    width: calc(100% + 2px);
+    opacity: 0;
+  }
+}
+
+@keyframes drawLeft {
+  0% {
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    height: calc(100% + 2px);
+    opacity: 0;
+  }
+}
+
+.chartContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #FAF9F7;
+  padding: 50px 25px 35px 25px;
+  transition: all 0.2s ease;
+}
+
+.chartContentSelected {
+  box-shadow: 0 0 0 2px #3D3FEE;
+}
+
+.headerArea {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 15px;
+  z-index: 10;
+}
+
+/* Scatter Plot Legend */
+.scatterLegend {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #F5F4F3;
+  padding: 8px 24px 8px 12px;
+  border-radius: 4px;
+  z-index: 5;
+}
+
+.scatterLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legendSquare {
+  width: 18px;
+  height: 18px;
+  border-radius: 1px;
+  display: inline-block;
+}
+
+.legendIcon {
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px;
+  min-height: 12px;
+  max-width: 12px;
+  max-height: 12px;
+  padding: 3px;
+  object-fit: contain;
+  object-position: center;
+  background-color: #FFFFFF;
+  border: 0.25px solid #F5F5F5;
+  border-radius: 1px;
+  box-sizing: content-box;
+  display: block;
+}
+
+.legendLabel {
+  font-size: 11px;
+  font-family: 'ABC Arizona Flare', serif;
+  color: #000;
+  font-weight: 500;
+}
+
+.title {
+  font-size: 24px;
+  color: #000;
+  text-align: center;
+  font-weight: normal;
+  margin: 0;
+}
+
+.chartArea {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gridWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.barsWrapper {
+  position: relative;
+  z-index: 10;
+}
+
+.chartArea svg {
+  display: block;
+}
+
+.barIcon {
+  position: absolute;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px;
+  min-height: 20px;
+  max-width: 20px;
+  max-height: 20px;
+  pointer-events: none;
+  z-index: 15;
+  padding: 3px;
+  box-sizing: content-box;
+  object-fit: contain;
+  object-position: center;
+}
+
+.scatterIcon {
+  position: absolute;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px;
+  min-height: 12px;
+  max-width: 12px;
+  max-height: 12px;
+  pointer-events: none;
+  z-index: 15;
+  padding: 3px;
+  background-color: #FFFFFF;
+  border: 0.25px solid #F5F5F5;
+  border-radius: 1px;
+  box-sizing: content-box;
+  object-fit: contain;
+  object-position: center;
+}
