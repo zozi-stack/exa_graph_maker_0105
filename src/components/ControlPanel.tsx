@@ -131,7 +131,7 @@ const ControlPanel = ({
   return (
     <div className={styles.controlPanel}>
       <div className={styles.content}>
-          <h1 className={styles.panelTitle}>Exa Graph Maker</h1>
+          <h1 className={styles.panelTitle}>Exa Evals Studio</h1>
           
           {/* Add Graph Buttons */}
           <div className={styles.addGraphSection}>
