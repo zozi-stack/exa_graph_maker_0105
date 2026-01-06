@@ -21,23 +21,26 @@ const defaultBarChartData: Omit<EvalData, 'id'> = {
     { name: 'Brave', accuracy: 30, color: '#DFDFDF', icon: '' },
     { name: 'Parallel', accuracy: 27, color: '#DFDFDF', icon: '' },
   ],
+  borderImage: '/images/02.png',
 };
 
 const defaultScatterPlotData: Omit<EvalData, 'id'> = {
   title: 'Scatter Plot',
   yAxisLabel: 'Accuracy (%)',
-  xAxisLabel: '',
+  xAxisLabel: 'Latency (ms)',
   chartType: 'scatter',
   companies: [],
   scatterPoints: [
-    { x: 0, y: 63, color: '#3D3FEE', label: 'Exa', sublabel: '63%', highlighted: true },
-    { x: 0, y: 30, color: '#DFDFDF', label: 'Brave', sublabel: '30%', highlighted: false },
-    { x: 0, y: 27, color: '#DFDFDF', label: 'Parallel', sublabel: '27%', highlighted: false },
+    { x: 450, y: 63, color: '#3D3FEE', label: 'Exa', sublabel: '63% / 450ms', highlighted: true },
+    { x: 3000, y: 30, color: '#DFDFDF', label: 'Brave', sublabel: '30% / 3000ms', highlighted: false },
+    { x: 3000, y: 27, color: '#DFDFDF', label: 'Parallel', sublabel: '27% / 3000ms', highlighted: false },
   ],
   scatterLegend: [
     { label: 'Exa', color: '#3D3FEE', isSquare: true },
     { label: 'Others', color: '#DFDFDF', isSquare: false },
   ],
+  borderImage: '/images/01.png',
+  scatterYStartFromZero: false,
 };
 
 function App() {

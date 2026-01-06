@@ -133,6 +133,16 @@ const ControlPanel = ({
       <div className={styles.content}>
           <h1 className={styles.panelTitle}>Exa Graph Maker</h1>
           
+          {/* Add Graph Buttons */}
+          <div className={styles.addGraphSection}>
+            <button className={styles.addGraphButton} onClick={() => onAddGraph('bar')}>
+              Add Bar Chart
+            </button>
+            <button className={styles.addGraphButton} onClick={() => onAddGraph('scatter')}>
+              Add Scatter Plot
+            </button>
+          </div>
+
           {/* Graph Accordions */}
           <div className={styles.graphList}>
             {graphs.map((graph, index) => (
@@ -197,6 +207,57 @@ const ControlPanel = ({
                           placeholder={data.chartType === 'scatter' ? 'e.g. Time (s)' : 'e.g. Companies'}
                         />
                       </label>
+
+                      <div className={styles.label}>
+                        <span>Choose Design</span>
+                        <div className={styles.borderImageGrid}>
+                          <div 
+                            className={`${styles.borderImageNone} ${!data.borderImage ? styles.selected : ''}`}
+                            onClick={() => onDataChange({ ...data, borderImage: undefined })}
+                          >
+                            None
+                          </div>
+                          {['/images/01.png', '/images/02.png', '/images/03.png', '/images/04.png', '/images/05.png', '/images/06.png', '/images/07.png', '/images/08.png', '/images/09 1.png'].map((img) => (
+                            <img
+                              key={img}
+                              src={img}
+                              alt={`Border ${img}`}
+                              role="button"
+                              tabIndex={0}
+                              className={`${styles.borderImageOption} ${data.borderImage === img ? styles.selected : ''}`}
+                              onClick={() => {
+                                console.log('Selecting border image:', img);
+                                onDataChange({ ...data, borderImage: img });
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  onDataChange({ ...data, borderImage: img });
+                                }
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className={styles.logoUploadContainer} style={{ marginTop: '8px' }}>
+                          <label className={styles.uploadButton}>
+                            Custom Upload
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    onDataChange({ ...data, borderImage: event.target?.result as string });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className={styles.fileInput}
+                            />
+                          </label>
+                        </div>
+                      </div>
                     </div>
 
                     {data.chartType === 'bar' ? (
@@ -204,9 +265,6 @@ const ControlPanel = ({
                       <div className={styles.section}>
                         <div className={styles.sectionHeader}>
                           <h3>Companies</h3>
-                          <button className={styles.addButton} onClick={addCompany}>
-                            +
-                          </button>
                         </div>
 
                         {data.companies.map((company, companyIndex) => (
@@ -301,9 +359,6 @@ const ControlPanel = ({
                         <div className={styles.section}>
                           <div className={styles.sectionHeader}>
                             <h3>Data Points</h3>
-                            <button className={styles.addButton} onClick={addScatterPoint}>
-                              +
-                            </button>
                           </div>
 
                           {(data.scatterPoints || []).map((point, pointIndex) => (
@@ -340,14 +395,23 @@ const ControlPanel = ({
                               </label>
 
                               <label className={styles.label}>
-                                {data.yAxisLabel?.replace(/[()%]/g, '').trim() || 'Value'} (%)
+                                Y Value
                                 <input
                                   type="number"
-                                  min="0"
-                                  max="100"
                                   value={point.y}
                                   onChange={(e) => updateScatterPoint(pointIndex, 'y', parseFloat(e.target.value) || 0)}
                                   className={styles.input}
+                                />
+                              </label>
+
+                              <label className={styles.label}>
+                                X Value (optional)
+                                <input
+                                  type="number"
+                                  value={point.x || ''}
+                                  onChange={(e) => updateScatterPoint(pointIndex, 'x', e.target.value ? parseFloat(e.target.value) : 0)}
+                                  className={styles.input}
+                                  placeholder="e.g. 450"
                                 />
                               </label>
 
@@ -395,26 +459,40 @@ const ControlPanel = ({
                             </div>
                           ))}
                         </div>
+
+                        <div className={styles.section}>
+                          <h3 className={styles.sectionSubtitle}>Chart Options</h3>
+                          <div className={styles.toggleRow}>
+                            <span className={styles.toggleLabel}>Y-axis starts from 0</span>
+                            <button
+                              className={`${styles.toggleButton} ${data.scatterYStartFromZero ? styles.toggleActive : ''}`}
+                              onClick={() => onDataChange({ ...data, scatterYStartFromZero: !data.scatterYStartFromZero })}
+                            >
+                              <span className={styles.toggleKnob} />
+                            </button>
+                          </div>
+                        </div>
                       </>
                     )}
 
-                    <button className={styles.resetButton} onClick={resetData}>
-                      <span className={styles.buttonIcon}>↺</span> Reset
-                    </button>
+                    <div className={styles.addGraphSection}>
+                      {data.chartType === 'bar' ? (
+                        <button className={styles.addGraphButton} onClick={addCompany}>
+                          + Add Company
+                        </button>
+                      ) : (
+                        <button className={styles.addGraphButton} onClick={addScatterPoint}>
+                          + Add Data Point
+                        </button>
+                      )}
+                      <button className={styles.addGraphButton} onClick={resetData}>
+                        <span className={styles.buttonIcon}>↺</span> Reset
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ))}
-          </div>
-
-          {/* Add Graph Buttons */}
-          <div className={styles.addGraphSection}>
-            <button className={styles.addGraphButton} onClick={() => onAddGraph('bar')}>
-              Add Bar Chart
-            </button>
-            <button className={styles.addGraphButton} onClick={() => onAddGraph('scatter')}>
-              Add Scatter Plot
-            </button>
           </div>
         </div>
     </div>

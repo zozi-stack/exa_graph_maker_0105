@@ -39,6 +39,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
   const gridSvgRef = useRef<SVGSVGElement>(null);
   const barsSvgRef = useRef<SVGSVGElement>(null);
   const chartContentRef = useRef<HTMLDivElement>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const [iconPositions, setIconPositions] = useState<IconPosition[]>([]);
   const [isSelected, setIsSelected] = useState(false);
 
@@ -62,7 +63,8 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
   const iconSize = 26;
 
   const exportToPng = async () => {
-    const chartElement = chartContentRef.current;
+    // Use container when there's a background image to include it in export
+    const chartElement = data.borderImage ? chartContainerRef.current : chartContentRef.current;
     if (!chartElement) return;
     
     try {
@@ -73,7 +75,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const dataUrl = await domtoimage.toPng(chartElement, {
-        bgcolor: '#FAF9F7',
+        bgcolor: 'transparent',
         scale: 4,
         quality: 1,
         style: {
@@ -167,15 +169,29 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
       const dataYMin = Math.min(...yValues);
       const dataYMax = Math.max(...yValues);
       const yPadding = (dataYMax - dataYMin) * 0.15 || 10; // 15% padding, minimum 10
-      const yMin = Math.max(0, Math.floor((dataYMin - yPadding) / 10) * 10); // Round down to nearest 10
-      const yMax = Math.min(100, Math.ceil((dataYMax + yPadding) / 10) * 10); // Round up to nearest 10
+      
+      // If scatterYStartFromZero is true, start from 0; otherwise auto-calculate
+      let yMin = data.scatterYStartFromZero 
+        ? 0 
+        : Math.max(0, Math.floor((dataYMin - yPadding) / 10) * 10); // Round down to nearest 10
+      let yMax = Math.min(100, Math.ceil((dataYMax + yPadding) / 10) * 10); // Round up to nearest 10
+      
+      // Calculate X range based on data points
+      const xValues = scatterPoints.map(p => p.x).filter(x => x > 0);
+      const xDataMax = xValues.length > 0 ? Math.max(...xValues) : 100;
+      const xMin = 0;
+      // Add 25% padding to xMax to ensure labels have room, and round up nicely
+      const xMaxPadded = xDataMax * 1.25;
+      const xMax = Math.ceil(xMaxPadded / 500) * 500; // Round up to nearest 500
+      
+      // Ensure minimum tick spacing (at least 100 units between ticks) to fit labels
+      const minXRange = 800; // Minimum X range to ensure 9 ticks have ~100 spacing
+      const finalXMax = Math.max(xMax, minXRange);
 
-      // Scales - use band scale for X like bar chart
-      const xScale = d3.scaleBand()
-        .domain(scatterPoints.map((p, i) => p.label || `Point ${i + 1}`))
-        .range([0, innerWidth])
-        .paddingInner(0.316)
-        .paddingOuter(0.211);
+      // Scales - use linear scale for X based on actual X values
+      const xScale = d3.scaleLinear()
+        .domain([xMin, finalXMax])
+        .range([0, innerWidth]);
 
       const yScale = d3.scaleLinear()
         .domain([yMin, yMax])
@@ -196,7 +212,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         }
       }
 
-      // Y-axis tick labels with percentages
+      // Y-axis tick labels (no % symbol)
       const yTicks = d3.range(yMin, yMax + 1, (yMax - yMin) / 5);
       gridChart.selectAll('.y-tick-label')
         .data(yTicks)
@@ -210,7 +226,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         .attr('fill', '#757575')
         .attr('font-size', '12px')
         .attr('font-family', "'ABC Diatype Mono', 'SF Mono', 'Monaco', monospace")
-        .text(d => `${Math.round(d)}%`);
+        .text(d => Math.round(d));
 
       // Y-axis label (rotated)
       gridChart.append('text')
@@ -224,12 +240,29 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         .attr('font-family', "'ABC Arizona Flare', serif")
         .text(data.yAxisLabel);
 
-      // X-axis label (centered at bottom)
+      // X-axis tick labels (9 ticks spanning the full axis width)
+      const xTickStep = (finalXMax - xMin) / 8; // 9 ticks = 8 intervals
+      const xTicks = d3.range(xMin, finalXMax + 1, xTickStep);
+      
+      gridChart.selectAll('.x-tick-label')
+        .data(xTicks)
+        .enter()
+        .append('text')
+        .attr('class', 'x-tick-label')
+        .attr('x', d => xScale(d))
+        .attr('y', innerHeight + 20)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#757575')
+        .attr('font-size', '12px')
+        .attr('font-family', "'ABC Diatype Mono', 'SF Mono', 'Monaco', monospace")
+        .text(d => Math.round(d));
+
+      // X-axis label (centered at bottom, below tick labels)
       if (data.xAxisLabel) {
         barsChart.append('text')
           .attr('class', 'x-axis-label')
           .attr('x', innerWidth / 2)
-          .attr('y', innerHeight + 30)
+          .attr('y', innerHeight + 42)
           .attr('text-anchor', 'middle')
           .attr('fill', '#757575')
           .attr('font-size', '14px')
@@ -237,20 +270,126 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
           .text(data.xAxisLabel);
       }
 
-      // Data points with labels
+      // Data points with labels - first calculate positions, then resolve collisions
       const scatterIconSize = 12; // Size for logos replacing bullets
-      scatterPoints.forEach((point, index) => {
-        const pointLabel = point.label || `Point ${index + 1}`;
-        const px = xScale(pointLabel)! + xScale.bandwidth() / 2;
+      const bulletSize = 10;
+      
+      // Calculate label positions for all points
+      interface LabelPosition {
+        point: typeof scatterPoints[0];
+        px: number;
+        py: number;
+        labelX: number;
+        labelY: number;
+        hasLogo: boolean;
+        width: number;
+        height: number;
+      }
+      
+      const labelPositions: LabelPosition[] = scatterPoints.map((point) => {
+        const px = xScale(point.x);
         const py = yScale(point.y);
-        const bulletSize = 10;
+        const hasLogo = !!(point.icon?.startsWith('data:') || scatterIconMap[point.label || '']);
+        const iconBoxSize = hasLogo ? 19 : bulletSize;
+        const bulletGap = 8;
+        const labelX = px + iconBoxSize / 2 + bulletGap;
+        const labelY = py;
         
-        // Check if point has a logo (uploaded or auto-assigned)
-        const hasLogo = point.icon?.startsWith('data:') || scatterIconMap[point.label || ''];
+        // Estimate label dimensions (approximate based on character count)
+        const labelText = point.label || '';
+        const sublabelText = `${point.y}%${point.x ? `  /  ${point.x}ms` : ''}`;
+        const width = Math.max(labelText.length * 8, sublabelText.length * 6) + 10;
+        const height = 35; // Total height for label + sublabel
         
+        return { point, px, py, labelX, labelY, hasLogo, width, height };
+      });
+      
+      // Sort by Y position (top to bottom) to handle collisions predictably
+      labelPositions.sort((a, b) => a.py - b.py);
+      
+      // Resolve label collisions - check if labels overlap and offset them
+      const resolvedPositions = labelPositions.map((pos, index) => {
+        let offsetY = 0;
+        
+        // Check against all previous labels for collision
+        for (let i = 0; i < index; i++) {
+          const other = labelPositions[i];
+          const otherOffsetY = (other as any).offsetY || 0;
+          
+          // Check if labels overlap (both horizontally and vertically)
+          const horizontalOverlap = Math.abs(pos.labelX - other.labelX) < Math.max(pos.width, other.width);
+          const verticalDistance = Math.abs((pos.labelY + offsetY) - (other.labelY + otherOffsetY));
+          const verticalOverlap = verticalDistance < pos.height;
+          
+          if (horizontalOverlap && verticalOverlap) {
+            // Calculate offset to avoid overlap
+            const overlapAmount = pos.height - verticalDistance;
+            if (pos.labelY + offsetY > other.labelY + otherOffsetY) {
+              offsetY += overlapAmount + 5; // Move down
+            } else {
+              offsetY -= overlapAmount + 5; // Move up
+            }
+          }
+        }
+        
+        (pos as any).offsetY = offsetY;
+        return { ...pos, offsetY };
+      });
+      
+      // Ensure labels don't extend below the chart area (past X-axis)
+      // and resolve any new overlaps created by pushing labels up
+      const bottomBoundary = innerHeight - 20; // Leave 20px buffer for sublabel
+      const labelHeight = 35; // Total height for label + sublabel
+      
+      // Sort by Y position from bottom to top (highest py first) to process bottom labels first
+      const sortedByBottom = [...resolvedPositions].sort((a, b) => 
+        (b.py + b.offsetY) - (a.py + a.offsetY)
+      );
+      
+      sortedByBottom.forEach((pos) => {
+        const finalLabelBottom = pos.py + pos.offsetY + 18; // Sublabel is 18px below label
+        
+        if (finalLabelBottom > bottomBoundary) {
+          // Push label up to stay within bounds
+          const overflow = finalLabelBottom - bottomBoundary;
+          pos.offsetY -= overflow;
+          
+          // Now check if this pushed-up label overlaps with any label above it
+          // and cascade the push upward
+          resolvedPositions.forEach((other) => {
+            if (other === pos) return;
+            
+            // Check if labels overlap horizontally
+            const horizontalOverlap = Math.abs(pos.labelX - other.labelX) < Math.max(pos.width, other.width);
+            if (!horizontalOverlap) return;
+            
+            const posY = pos.py + pos.offsetY;
+            const otherY = other.py + other.offsetY;
+            
+            // If the other label is above this one and they now overlap
+            if (otherY < posY) {
+              const verticalGap = posY - otherY;
+              if (verticalGap < labelHeight) {
+                // Push the upper label even higher
+                const neededSpace = labelHeight - verticalGap + 5;
+                other.offsetY -= neededSpace;
+              }
+            }
+          });
+        }
+      });
+      
+      // Render points and labels with resolved positions, and collect icon positions
+      const iconBoxSize = 18; // 12px image + 3px padding each side + border
+      const scatterIconPositions: (IconPosition & { size: number })[] = [];
+      
+      resolvedPositions.forEach(({ point, px, py, labelX, labelY, hasLogo, offsetY }, index) => {
         // Create a group for each point
         const pointGroup = barsChart.append('g')
           .attr('class', 'scatter-point-group');
+
+        // The final Y position includes the collision offset - logo and label move together
+        const finalY = py + offsetY;
 
         // Only render bullet if no logo
         if (!hasLogo) {
@@ -258,7 +397,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
           if (shouldBeSquare) {
             pointGroup.append('rect')
               .attr('x', px - bulletSize / 2)
-              .attr('y', py - bulletSize / 2)
+              .attr('y', finalY - bulletSize / 2)
               .attr('width', bulletSize)
               .attr('height', bulletSize)
               .attr('rx', 1)
@@ -266,25 +405,34 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
           } else {
             pointGroup.append('circle')
               .attr('cx', px)
-              .attr('cy', py)
+              .attr('cy', finalY)
               .attr('r', bulletSize / 2)
               .attr('fill', point.color);
+          }
+        } else {
+          // Collect icon position (logo moves with label)
+          const iconSrc = point.icon?.startsWith('data:') 
+            ? point.icon 
+            : (scatterIconMap[point.label || ''] || null);
+          if (iconSrc) {
+            scatterIconPositions.push({
+              name: point.label || `Point ${index + 1}`,
+              x: margin.left + px - iconBoxSize / 2,
+              y: margin.top + finalY - iconBoxSize / 2, // Use finalY with offset
+              src: iconSrc,
+              size: scatterIconSize
+            });
           }
         }
 
         // Label: name positioned to the right of bullet/logo (like a bullet point)
         if (point.label) {
-          // Total icon box size: 14px image + 2px padding each side + 0.5px border each side = ~19px
-          const iconBoxSize = hasLogo ? 19 : bulletSize;
-          const bulletGap = 8; // Space between bullet and text
-          const labelX = px + iconBoxSize / 2 + bulletGap;
-          const labelY = py;
+          const finalLabelY = labelY + offsetY;
 
           // Company name (ABC Arizona Flare, 14px - same as x-axis)
-          // Center aligned with bullet using 'central' baseline
           pointGroup.append('text')
             .attr('x', labelX)
-            .attr('y', labelY)
+            .attr('y', finalLabelY)
             .attr('fill', '#000')
             .attr('font-size', '14px')
             .attr('font-family', "'ABC Arizona Flare', serif")
@@ -292,42 +440,22 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
             .attr('alignment-baseline', 'central')
             .text(point.label);
 
-          // Accuracy sublabel below (ABC Diatype Mono)
-          if (point.sublabel) {
-            pointGroup.append('text')
-              .attr('x', labelX)
-              .attr('y', labelY + 18)
-              .attr('fill', '#757575')
-              .attr('font-size', '12px')
-              .attr('font-family', "'ABC Diatype Mono', 'SF Mono', 'Monaco', monospace")
-              .attr('dominant-baseline', 'central')
-              .text(point.sublabel);
-          }
+          // Show Y value and X value (always use current values from data)
+          const yValueText = `${point.y}%`;
+          const xValueText = point.x ? `  /  ${point.x}ms` : '';
+          const sublabelText = yValueText + xValueText;
+          
+          pointGroup.append('text')
+            .attr('x', labelX)
+            .attr('y', finalLabelY + 18)
+            .attr('fill', '#757575')
+            .attr('font-size', '10px')
+            .attr('font-family', "'ABC Diatype Mono', 'SF Mono', 'Monaco', monospace")
+            .attr('dominant-baseline', 'central')
+            .text(sublabelText);
         }
       });
 
-      // Calculate icon positions for scatter plot (logos replace bullets)
-      // Icon box size: 12px image + 3px padding each side + border = ~18px
-      const iconBoxSize = 18;
-      const scatterIconPositions = scatterPoints
-        .map((point, index) => {
-          const pointLabel = point.label || `Point ${index + 1}`;
-          const px = xScale(pointLabel)! + xScale.bandwidth() / 2;
-          const py = yScale(point.y);
-          // Use uploaded icon, or auto-assign based on label name
-          const iconSrc = point.icon?.startsWith('data:') 
-            ? point.icon 
-            : (scatterIconMap[point.label || ''] || null);
-          if (!iconSrc) return null;
-          return {
-            name: point.label || `Point ${index + 1}`,
-            x: margin.left + px - iconBoxSize / 2, // Center the icon box on data point
-            y: margin.top + py - iconBoxSize / 2, // Center vertically on data point
-            src: iconSrc,
-            size: scatterIconSize
-          };
-        })
-        .filter((pos): pos is IconPosition & { size: number } => pos !== null);
       setIconPositions(scatterIconPositions);
 
     } else {
@@ -511,18 +639,32 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
   };
 
   return (
-    <div className={styles.chartContainer}>
+    <div 
+      ref={chartContainerRef}
+      className={`${styles.chartContainer} ${isSelected ? styles.chartContainerSelected : ''} ${data.borderImage ? styles.withBackgroundContainer : ''}`}
+    >
       {/* Flying line borders */}
       <div className={styles.borderTop}></div>
       <div className={styles.borderRight}></div>
       <div className={styles.borderBottom}></div>
       <div className={styles.borderLeft}></div>
       
+      {/* Border image */}
+      {data.borderImage && (
+        <div 
+          className={styles.backgroundImage} 
+          style={{ '--bg-image': `url(${data.borderImage})` } as React.CSSProperties}
+        />
+      )}
+      
       <div 
-        className={`${styles.chartContent} ${isSelected ? styles.chartContentSelected : ''}`}
+        className={`${styles.chartContent} ${data.borderImage ? styles.withBackgroundImage : ''}`}
         ref={chartContentRef}
         onClick={handleChartClick}
-        style={{ cursor: 'pointer' }}
+        style={{ 
+          cursor: 'pointer', 
+          padding: '50px 25px 35px 25px'
+        }}
       >
         <div className={styles.headerArea}>
           <h1 className={styles.title}>{data.title}</h1>

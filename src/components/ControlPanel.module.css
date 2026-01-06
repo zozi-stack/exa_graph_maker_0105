@@ -13,7 +13,7 @@
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 24px 20px;
 }
 
 .panelTitle {
@@ -167,9 +167,13 @@
 
 .addGraphSection {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
-  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.addGraphSection .addGraphButton {
+  flex: 1;
 }
 
 .addGraphButton {
@@ -178,12 +182,12 @@
   justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background-color: #000;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: #FFF;
   transition: all 0.15s ease;
   font-family: inherit;
@@ -244,10 +248,10 @@
 }
 
 .resetButton {
-  background-color: transparent;
-  color: #666;
-  border: 1px solid #E5E5E5;
-  padding: 8px 14px;
+  background-color: #000;
+  color: #FFF;
+  border: none;
+  padding: 12px 14px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -263,8 +267,7 @@
 }
 
 .resetButton:hover {
-  background-color: #F5F5F5;
-  color: #000;
+  background-color: #333;
 }
 
 .section {
@@ -547,6 +550,63 @@
   background-color: #FFFFFF;
 }
 
+.borderPreview {
+  width: 60px;
+  height: 24px;
+  object-fit: cover;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  background-color: #FFFFFF;
+}
+
+.borderImageGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.borderImageOption {
+  width: 60px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  object-fit: cover;
+  transition: border-color 0.2s ease;
+}
+
+.borderImageOption:hover {
+  border-color: #BBBBBB;
+}
+
+.borderImageOption.selected {
+  border-color: #3D3FEE;
+}
+
+.borderImageNone {
+  width: 60px;
+  height: 24px;
+  border: 2px dashed #DDDDDD;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #999;
+  background: #F9F9F9;
+  transition: border-color 0.2s ease;
+}
+
+.borderImageNone:hover {
+  border-color: #BBBBBB;
+}
+
+.borderImageNone.selected {
+  border-color: #3D3FEE;
+}
+
 .logoPlaceholder {
   width: 32px;
   height: 32px;
@@ -661,4 +721,77 @@
   font-weight: 500;
   color: #333;
   margin-bottom: 12px;
+}
+
+.sectionSubtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: #666;
+  margin: 0 0 12px 0;
+  font-family: 'ABC Arizona Flare', serif;
+}
+
+/* Toggle Row */
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.toggleLabel {
+  font-size: 13px;
+  font-weight: 400;
+  color: #333;
+}
+
+.toggleButton {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: #E5E5E5;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 0;
+}
+
+.toggleButton.toggleActive {
+  background-color: #000;
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: #FFF;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggleButton.toggleActive .toggleKnob {
+  transform: translateX(20px);
+}
+
+/* Add Data Point Button */
+.addDataPointButton {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 8px;
+  background-color: #000;
+  border: none;
+  border-radius: 8px;
+  color: #FFF;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.addDataPointButton:hover {
+  background-color: #333;
 }

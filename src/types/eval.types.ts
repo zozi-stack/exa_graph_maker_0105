@@ -40,4 +40,6 @@ export interface EvalData {
   scatterYMin?: number;
   scatterYMax?: number;
   scatterLegend?: ScatterLegendItem[];
+  scatterYStartFromZero?: boolean;
+  borderImage?: string; // URL or data URL for border image
 }

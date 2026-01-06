@@ -23,6 +23,7 @@
       "color": "#DFDFDF",
       "icon": "parallel-icon.svg"
     }
-  ]
+  ],
+  "borderImage": "/images/02.png"
 }
 
