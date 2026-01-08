@@ -25,6 +25,23 @@
   animation: fadeIn 0.6s ease-out;
 }
 
+.carousel-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.carousel-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+}
+
 .export-button {
   position: fixed;
   top: 20px;
@@ -63,8 +80,6 @@
   display: flex;
   align-items: center;
   gap: 100px;
-  padding: 0 100px;
-  height: 100%;
   min-width: 100%;
   user-select: none;
   touch-action: pan-y;
@@ -78,10 +93,74 @@
 .chart-wrapper {
   flex-shrink: 0;
   border-radius: 4px;
+  transition: opacity 0.3s ease;
 }
 
 .chart-wrapper.active {
   z-index: 10;
+}
+
+/* Navigation controls */
+.carousel-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 100;
+}
+
+.nav-arrow {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.nav-arrow:hover:not(:disabled) {
+  background: rgba(61, 63, 238, 0.3);
+  border-color: rgba(61, 63, 238, 0.5);
+  transform: scale(1.05);
+}
+
+.nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.carousel-indicators {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.indicator-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.indicator-dot.active {
+  background: #3D3FEE;
+  width: 10px;
+  height: 10px;
 }
 
 @keyframes fadeIn {

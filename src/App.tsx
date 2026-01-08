@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import EvalChart, { EvalChartRef } from './components/EvalChart';
 import ControlPanel from './components/ControlPanel';
-import { EvalData, ChartType } from './types/eval.types';
+import { EvalData } from './types/eval.types';
 import evalDataJson from './data/evals.json';
 import './App.css';
 
@@ -10,19 +10,6 @@ import './App.css';
 type GraphData = EvalData;
 
 const createGraphId = () => `graph-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-const defaultBarChartData: Omit<EvalData, 'id'> = {
-  title: 'Bar Chart',
-  yAxisLabel: 'Accuracy (%)',
-  xAxisLabel: '',
-  chartType: 'bar',
-  companies: [
-    { name: 'Exa', accuracy: 63, color: '#3D3FEE', icon: '', highlighted: true },
-    { name: 'Brave', accuracy: 30, color: '#DFDFDF', icon: '' },
-    { name: 'Parallel', accuracy: 27, color: '#DFDFDF', icon: '' },
-  ],
-  borderImage: '/images/02.png',
-};
 
 const defaultScatterPlotData: Omit<EvalData, 'id'> = {
   title: 'Scatter Plot',
@@ -47,7 +34,8 @@ function App() {
   const [graphs, setGraphs] = useState<GraphData[]>([
     { 
       ...evalDataJson as EvalData, 
-      id: createGraphId()
+      id: createGraphId(),
+      title: 'Bar Chart'
     },
     {
       ...defaultScatterPlotData,
@@ -58,26 +46,60 @@ function App() {
   const [activeGraphIndex, setActiveGraphIndex] = useState(0);
   const [selectedChartIndex, setSelectedChartIndex] = useState<number | null>(null);
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
+  const [carouselX, setCarouselX] = useState(0);
   const chartRefs = useRef<(EvalChartRef | null)[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const activeGraph = graphs[activeGraphIndex];
 
-  // Calculate drag constraints based on content width
+  // Navigation functions
+  const goToPrevious = () => {
+    if (activeGraphIndex > 0) {
+      setActiveGraphIndex(activeGraphIndex - 1);
+    }
+  };
+
+  const goToNext = () => {
+    if (activeGraphIndex < graphs.length - 1) {
+      setActiveGraphIndex(activeGraphIndex + 1);
+    }
+  };
+
+  // Shared chart dimensions
+  const CHART_WIDTH = 750; // Chart width including border
+  const GAP = 100;
+  const CONTROL_PANEL_WIDTH = 280;
+
+  // Calculate drag constraints
   useEffect(() => {
     const calculateConstraints = () => {
-      const chartWidth = 700; // chart width + gap
-      const gap = 100;
-      const totalWidth = graphs.length * (chartWidth + gap) - gap;
-      const viewportWidth = window.innerWidth - 320; // Subtract control panel width
-      const leftConstraint = Math.min(0, -(totalWidth - viewportWidth + 100));
-      setDragConstraints({ left: leftConstraint, right: 100 });
+      const viewportWidth = window.innerWidth - CONTROL_PANEL_WIDTH;
+      const centerOffset = (viewportWidth - CHART_WIDTH) / 2;
+      const leftConstraint = Math.min(centerOffset, -((graphs.length - 1) * (CHART_WIDTH + GAP)) + centerOffset);
+      const rightConstraint = centerOffset;
+      setDragConstraints({ left: leftConstraint, right: rightConstraint });
     };
     
     calculateConstraints();
     window.addEventListener('resize', calculateConstraints);
     return () => window.removeEventListener('resize', calculateConstraints);
   }, [graphs.length]);
+
+  // Scroll to active chart when it changes or graphs are added/removed - center it in viewport
+  useEffect(() => {
+    const centerChart = () => {
+      const viewportWidth = window.innerWidth - CONTROL_PANEL_WIDTH;
+      const chartPosition = activeGraphIndex * (CHART_WIDTH + GAP);
+      const centerOffset = (viewportWidth - CHART_WIDTH) / 2;
+      const targetX = -chartPosition + centerOffset;
+      
+      setCarouselX(targetX);
+    };
+    
+    centerChart();
+    window.addEventListener('resize', centerChart);
+    return () => window.removeEventListener('resize', centerChart);
+  }, [activeGraphIndex, graphs.length]);
 
   const updateActiveGraph = (data: EvalData) => {
     setGraphs(prev => {
@@ -88,18 +110,6 @@ function App() {
       };
       return newGraphs;
     });
-  };
-
-  const addGraph = (chartType: ChartType) => {
-    const defaultData = chartType === 'scatter' ? defaultScatterPlotData : defaultBarChartData;
-    
-    const newGraph: GraphData = { 
-      ...defaultData, 
-      id: createGraphId(),
-      title: `${chartType === 'scatter' ? 'Scatter Plot' : 'Bar Chart'} ${graphs.length + 1}`
-    };
-    setGraphs(prev => [...prev, newGraph]);
-    setActiveGraphIndex(graphs.length);
   };
 
   const removeGraph = (index: number) => {
@@ -132,6 +142,26 @@ function App() {
     }
   };
 
+  // Snap to nearest chart center after dragging
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number }; velocity: { x: number } }) => {
+    const viewportWidth = window.innerWidth - CONTROL_PANEL_WIDTH;
+    const centerOffset = (viewportWidth - CHART_WIDTH) / 2;
+    
+    // Calculate current position after drag
+    const currentX = carouselX + info.offset.x;
+    
+    // Find which chart index this corresponds to
+    const rawIndex = -(currentX - centerOffset) / (CHART_WIDTH + GAP);
+    
+    // Factor in velocity for a more natural feel
+    const velocityAdjustment = info.velocity.x > 500 ? -1 : info.velocity.x < -500 ? 1 : 0;
+    
+    // Clamp to valid index range
+    const targetIndex = Math.max(0, Math.min(graphs.length - 1, Math.round(rawIndex) + velocityAdjustment));
+    
+    setActiveGraphIndex(targetIndex);
+  };
+
   return (
     <div className="app-layout">
       <ControlPanel 
@@ -140,7 +170,6 @@ function App() {
         graphs={graphs}
         activeGraphIndex={activeGraphIndex}
         onSelectGraph={setActiveGraphIndex}
-        onAddGraph={addGraph}
         onRemoveGraph={removeGraph}
       />
       <div className="chart-section">
@@ -158,29 +187,73 @@ function App() {
           </svg>
         </button>
         
-        <motion.div 
-          ref={carouselRef}
-          className="charts-carousel"
-          drag="x"
-          dragConstraints={dragConstraints}
-          dragElastic={0.1}
-          dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
-          style={{ cursor: 'grab' }}
-          whileDrag={{ cursor: 'grabbing' }}
-        >
-          {graphs.map((graph, index) => (
-            <div 
-              key={graph.id} 
-              className={`chart-wrapper ${index === activeGraphIndex ? 'active' : ''}`}
+        <div className="carousel-container">
+          <div className="carousel-content">
+            <motion.div 
+              ref={carouselRef}
+              className="charts-carousel"
+              drag="x"
+              dragConstraints={dragConstraints}
+              dragElastic={0.1}
+              dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+              animate={{ x: carouselX }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{ cursor: 'grab' }}
+              whileDrag={{ cursor: 'grabbing' }}
+              onDragEnd={handleDragEnd}
             >
-              <EvalChart 
-                ref={(el) => (chartRefs.current[index] = el)}
-                data={graph}
-                onSelectionChange={(isSelected) => handleSelectionChange(index, isSelected)}
-              />
+              {graphs.map((graph, index) => (
+                <div 
+                  key={graph.id} 
+                  className={`chart-wrapper ${index === activeGraphIndex ? 'active' : ''}`}
+                  onClick={() => setActiveGraphIndex(index)}
+                >
+                  <EvalChart 
+                    ref={(el) => (chartRefs.current[index] = el)}
+                    data={graph}
+                    onSelectionChange={(isSelected) => handleSelectionChange(index, isSelected)}
+                  />
+                </div>
+              ))}
+            </motion.div>
+            
+            {/* Navigation arrows */}
+            <div className="carousel-navigation">
+              <button 
+                className="nav-arrow nav-arrow-left"
+                onClick={goToPrevious}
+                disabled={activeGraphIndex === 0}
+                aria-label="Previous chart"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              
+              <div className="carousel-indicators">
+                {graphs.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`indicator-dot ${index === activeGraphIndex ? 'active' : ''}`}
+                    onClick={() => setActiveGraphIndex(index)}
+                    aria-label={`Go to chart ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              <button 
+                className="nav-arrow nav-arrow-right"
+                onClick={goToNext}
+                disabled={activeGraphIndex === graphs.length - 1}
+                aria-label="Next chart"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
             </div>
-          ))}
-        </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );

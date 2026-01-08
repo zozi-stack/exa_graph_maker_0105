@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EvalData, Company, ScatterPoint, ChartType } from '../types/eval.types';
+import { EvalData, Company, ScatterPoint } from '../types/eval.types';
 import styles from './ControlPanel.module.css';
 
 interface ControlPanelProps {
@@ -8,7 +8,6 @@ interface ControlPanelProps {
   graphs: EvalData[];
   activeGraphIndex: number;
   onSelectGraph: (index: number) => void;
-  onAddGraph: (chartType: ChartType) => void;
   onRemoveGraph: (index: number) => void;
 }
 
@@ -18,7 +17,6 @@ const ControlPanel = ({
   graphs, 
   activeGraphIndex, 
   onSelectGraph, 
-  onAddGraph, 
   onRemoveGraph 
 }: ControlPanelProps) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -132,16 +130,6 @@ const ControlPanel = ({
     <div className={styles.controlPanel}>
       <div className={styles.content}>
           <h1 className={styles.panelTitle}>Exa Evals Studio</h1>
-          
-          {/* Add Graph Buttons */}
-          <div className={styles.addGraphSection}>
-            <button className={styles.addGraphButton} onClick={() => onAddGraph('bar')}>
-              Add Bar Chart
-            </button>
-            <button className={styles.addGraphButton} onClick={() => onAddGraph('scatter')}>
-              Add Scatter Plot
-            </button>
-          </div>
 
           {/* Graph Accordions */}
           <div className={styles.graphList}>

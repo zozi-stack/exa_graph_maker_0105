@@ -212,8 +212,11 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         }
       }
 
-      // Y-axis tick labels (no % symbol)
-      const yTicks = d3.range(yMin, yMax + 1, (yMax - yMin) / 5);
+      // Y-axis tick labels (no % symbol) - multiples of 5 or 10
+      const yRange = yMax - yMin;
+      const roughYStep = yRange / 5;
+      const yStep = roughYStep <= 5 ? 5 : (roughYStep <= 10 ? 10 : Math.ceil(roughYStep / 10) * 10);
+      const yTicks = d3.range(Math.ceil(yMin / yStep) * yStep, yMax + 1, yStep);
       gridChart.selectAll('.y-tick-label')
         .data(yTicks)
         .enter()
@@ -240,9 +243,17 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         .attr('font-family', "'ABC Arizona Flare', serif")
         .text(data.yAxisLabel);
 
-      // X-axis tick labels (9 ticks spanning the full axis width)
-      const xTickStep = (finalXMax - xMin) / 8; // 9 ticks = 8 intervals
-      const xTicks = d3.range(xMin, finalXMax + 1, xTickStep);
+      // X-axis tick labels - multiples of 5 or 10
+      const xRange = finalXMax - xMin;
+      const roughXStep = xRange / 8; // Aim for ~9 ticks
+      // Round to nearest 5, 10, 50, 100, 500, etc.
+      let xStep;
+      if (roughXStep <= 5) xStep = 5;
+      else if (roughXStep <= 10) xStep = 10;
+      else if (roughXStep <= 50) xStep = Math.ceil(roughXStep / 10) * 10;
+      else if (roughXStep <= 100) xStep = Math.ceil(roughXStep / 50) * 50;
+      else xStep = Math.ceil(roughXStep / 100) * 100;
+      const xTicks = d3.range(xMin, finalXMax + 1, xStep);
       
       gridChart.selectAll('.x-tick-label')
         .data(xTicks)
@@ -262,7 +273,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         barsChart.append('text')
           .attr('class', 'x-axis-label')
           .attr('x', innerWidth / 2)
-          .attr('y', innerHeight + 42)
+          .attr('y', innerHeight + 50)
           .attr('text-anchor', 'middle')
           .attr('fill', '#757575')
           .attr('font-size', '14px')
@@ -481,8 +492,12 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
 
       // === GRID SVG (background) ===
       
-      // Grid lines - generate based on yMax
-      const gridLines = d3.range(0, yMax + 1, yMax / 5).map(v => Math.round(v));
+      // Grid lines - generate based on yMax with multiples of 5 or 10
+      const yRangeBar = yMax - 0;
+      const roughStep = yRangeBar / 5;
+      // Round to nearest 5 or 10
+      const yStepBar = roughStep <= 5 ? 5 : (roughStep <= 10 ? 10 : Math.ceil(roughStep / 10) * 10);
+      const gridLines = d3.range(0, yMax + 1, yStepBar).map(v => Math.round(v / yStepBar) * yStepBar);
       gridChart.selectAll('.grid-line')
         .data(gridLines)
         .enter()
@@ -521,7 +536,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         .attr('fill', '#757575')
         .attr('font-size', '12px')
         .attr('font-family', "'ABC Diatype Mono', 'SF Mono', 'Monaco', monospace")
-        .text(d => `${d}%`);
+        .text(d => d);
 
       // === BARS SVG (foreground) ===
 
@@ -581,7 +596,7 @@ const EvalChart = forwardRef<EvalChartRef, EvalChartProps>(({ data, onSelectionC
         barsChart.append('text')
           .attr('class', 'x-axis-label')
           .attr('x', innerWidth / 2)
-          .attr('y', innerHeight + 42)
+          .attr('y', innerHeight + 50)
           .attr('text-anchor', 'middle')
           .attr('fill', '#757575')
           .attr('font-size', '14px')
